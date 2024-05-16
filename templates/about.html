@@ -1,4 +1,31 @@
 {% extends "layout.html" %}
+
 {% block content %}
-    <h1>About Page</h1>
-{% endblock content %}
+    <div class="content-section">
+        <h2>About Expense Tracker</h2>
+        <p class="lead">Learn more about our expense tracking application.</p>
+        <hr>
+        <div class="row">
+            <div class="col-md-8">
+                <p>Welcome to Expense Tracker, your go-to tool for managing and monitoring your expenses.</p>
+                <p>Key features:</p>
+                <ul>
+                    <li>Effortlessly record and categorize your expenses.</li>
+                    <li>Set spending limits and receive alerts when nearing your budget.</li>
+                    <li>Plan your weekly expenses and track income sources.</li>
+                    <li>Receive concise weekly summaries of your spending via email.</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <div class="content-section">
+                    <h3>Quick Links</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item"><a href="{{ url_for('login') }}">Login</a></li>
+                        <li class="list-group-item"><a href="{{ url_for('register') }}">Register</a></li>
+                        <li class="list-group-item"><a href="{{ url_for('home') }}">Home</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
