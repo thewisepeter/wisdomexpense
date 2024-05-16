@@ -1,0 +1,11 @@
+# Ignore the Python environment directory
+venv/
+.env/
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+# Ignore other typical files/folders to ignore in Python projects
+.DS_Store
+*.log
+*.sqlite3
