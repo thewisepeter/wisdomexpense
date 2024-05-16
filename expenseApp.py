@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Flask, render_template, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from forms import RegistrationForm, LoginForm
+from forms import RegistrationForm, LoginForm, ExpenseForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '4fae35a28915d9bc651e0bc712350e5d'
@@ -30,16 +30,17 @@ class Expenses(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     amount = db.Column(db.Integer, nullable=False)
+    category = db.Column(db.String(50), nullable=False)
     date_of_purchase = db.Column(db.DateTime, nullable=False,
                                  default=datetime.utcnow)
     description = db.Column(db.Text)
-    image_file = db.Column(db.String(20), nullable=False,
+    receipt_image = db.Column(db.String(20), nullable=False,
                            default='default_receipt.jpg')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
         return (f"Expense('{self.title}', '{self.amount}', "
-                f"'{self.date_of_purchase}')")
+                f"'{self.date_of_purchase}, {self.category}')")
 
 
 class Income(db.Model):
@@ -115,6 +116,14 @@ def register():
         flash(f'Account created for {form.username.data}!', 'success')
         return redirect(url_for('home'))
     return render_template('register.html', title='Register', form=form)
+
+@app.route("/addexpense", methods=['GET', 'POST'])
+def addexpense():
+        form = ExpenseForm()
+        if form.validate_on_submit():
+            flash(f'Expense added!', 'success')
+            return redirect(url_for('home'))
+        return render_template('addExpense.html',title='Add Expense', form=form)
 
 
 @app.route("/login")
