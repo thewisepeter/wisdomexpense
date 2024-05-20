@@ -1,6 +1,7 @@
 # Ignore the Python environment directory
 venv/
 .env/
+expense/
 # Ignore Python bytecode files
 __pycache__/
 *.pyc
