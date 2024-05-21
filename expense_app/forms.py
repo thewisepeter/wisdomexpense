@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_login import current_user
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
-from wtforms import IntegerField, TextAreaField, SelectField
+from wtforms import IntegerField, TextAreaField, SelectField, DateField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_wtf.file import FileField, FileAllowed
 from datetime import datetime
@@ -16,7 +16,7 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confrim Password',
                                      validators=[DataRequired(), EqualTo('password')])
-    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
+    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'jpeg', 'png'])])
     submit = SubmitField('Sign Up')
 
     def validate_username(self, username):
@@ -81,13 +81,13 @@ class ExpenseForm(FlaskForm):
         ('Bills and Taxes', 'Bills and Taxes'),
         ('Vacations', 'Vacations')
     ], validators=[DataRequired()])
-    date_of_purchase = StringField('Date of Purchase', validators=[DataRequired()])
+    date_of_purchase = DateField('Date of Purchase', format='%Y-%m-%d', validators=[DataRequired()])
     description = TextAreaField('Description')
-    receipt_image = FileField('Receipt Image', validators=[FileAllowed(['jpg', 'png'], 'Images only!')])
+    receipt_image = FileField('Receipt Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Images only!')])
     submit = SubmitField('Add Expense')
 
-    def validate_date_of_purchase(self, field):
-        try:
-            datetime.strptime(field.data, '%Y-%m-%d')
-        except ValueError:
-            raise ValueError("Incorrect date format, please use YYYY-MM-DD")
+    # def validate_date_of_purchase(self, field):
+    #     try:
+    #         datetime.strptime(field.data, '%Y-%m-%d')
+    #     except ValueError:
+    #         raise ValueError("Incorrect date format, please use YYYY-MM-DD")

@@ -40,6 +40,20 @@ def about():
     '''
     return render_template('about.html', title='About')
 
+def save_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
+    
+    # resizing the image
+    output_size = (125, 125)
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+
+    return picture_fn
+
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
@@ -51,7 +65,14 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        
+        if form.picture.data:
+            picture_file = save_picture(form.picture.data)
+            current_user.image_file = picture_file
+        else:
+            picture_file = 'default.jpg'
+
+        user = User(username=form.username.data, email=form.email.data, password=hashed_password, image_file=picture_file)
         db.session.add(user)
         db.session.commit()
         flash('Your account has been created! You are now able to log in', 'success')
@@ -77,30 +98,6 @@ def login():
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
 
-@app.route("/addexpense", methods=['GET', 'POST'])
-def addexpense():
-        '''
-            Handles addition of expenses
-        '''
-        form = ExpenseForm()
-        if form.validate_on_submit():
-            flash(f'Expense added!', 'success')
-            return redirect(url_for('home'))
-        return render_template('add_expense.html',title='Add Expense', form=form)
-
-def save_picture(form_picture):
-    random_hex = secrets.token_hex(8)
-    _, f_ext = os.path.splitext(form_picture.filename)
-    picture_fn = random_hex + f_ext
-    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
-    
-    # resizing the image
-    output_size = (125, 125)
-    i = Image.open()
-    i.thumbnail(output_size)
-    i.save(picture_path)
-
-    return picture_fn
 
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
@@ -129,6 +126,32 @@ def logout():
     '''
     logout_user()
     return redirect(url_for('about'))
+
+
+
+@app.route("/expense/new", methods=['GET', 'POST'])
+@login_required
+def new_expense():
+        '''
+            Handles addition of expenses
+        '''
+        form = ExpenseForm()
+        if form.validate_on_submit():
+            expense=Expenses(
+                title=form.title.data,
+                amount=form.amount.data,
+                category=form.category.data,
+                date_of_purchase=form.date_of_purchase.data,
+                description=form.description.data,
+                receipt_image=form.receipt_image.data,
+                user_id=current_user.id
+            )
+            db.session.add(expense)
+            db.session.commit()
+            flash(f'Expense added!', 'success')
+            return redirect(url_for('home'))
+        return render_template('create_expense.html',title='Add Expense', form=form, legend="New Expense")
+
 
 
 # @app.route("/expense/<int:expense_id>/edit", methods=['GET', 'POST'])
