@@ -39,7 +39,7 @@ class Expenses(db.Model):
 
     def __repr__(self):
         return (f"Expense('{self.title}', '{self.amount}', "
-                f"'{self.date_of_purchase}, {self.category}')")
+                f"'{self.date_of_purchase}, {self.category}'), {self.receipt_image}")
 
 
 class Income(db.Model):
@@ -85,3 +85,4 @@ class PlannerItem(db.Model):
 # >>> from expense_app import app, db
 # >>> from expense_app.models import User, Expenses, Income, SpendingLimit, PlannerItem
 # >>> app.app_context().push()
+# >>> user_2 = User.query.filter_by(username='lorito').first()
