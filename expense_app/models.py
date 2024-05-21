@@ -78,3 +78,10 @@ class PlannerItem(db.Model):
 
     def __repr__(self):
         return f"PlannerItem('{self.title}', '{self.planned_date}')"
+
+
+
+
+# >>> from expense_app import app, db
+# >>> from expense_app.models import User, Expenses, Income, SpendingLimit, PlannerItem
+# >>> app.app_context().push()
