@@ -128,7 +128,19 @@ def logout():
     return redirect(url_for('about'))
 
 
+def save_receipt_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/receipt_pics', picture_fn)
+    
+    # resizing the image
+    output_size = (125, 125)
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
 
+    return picture_fn
 @app.route("/expense/new", methods=['GET', 'POST'])
 @login_required
 def new_expense():
@@ -137,13 +149,18 @@ def new_expense():
         '''
         form = ExpenseForm()
         if form.validate_on_submit():
+            if form.picture.data:
+                picture_file = save_receipt_picture(form.picture.data)
+                current_user.image_file = picture_file
+            else:
+                picture_file = 'default_receipt.png'
             expense=Expenses(
                 title=form.title.data,
                 amount=form.amount.data,
                 category=form.category.data,
                 date_of_purchase=form.date_of_purchase.data,
                 description=form.description.data,
-                receipt_image=form.receipt_image.data,
+                receipt_image=picture_file,
                 user_id=current_user.id
             )
             db.session.add(expense)

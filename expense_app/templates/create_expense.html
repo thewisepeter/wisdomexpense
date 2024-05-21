@@ -28,7 +28,7 @@
                                 <span>{{ error }}</span>
                             {% endfor %}
                         </div>
-                    {% else %}
+                    {% else %} 
                         {{ form.amount(class="form-control") }}
                     {% endif %}
                 </div>
@@ -73,17 +73,12 @@
                     {% endif %}
                 </div>
                 <div class="form-group">
-                    {{ form.receipt_image.label(class="form-control-label") }}
-                    <div class="custom-file">
-                        {{ form.receipt_image(class="custom-file-input") }}
-                        <label class="custom-file-label" for="customFile">Choose file</label>
-                    </div>
-                    {% if form.receipt_image.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in form.receipt_image.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
+                    {{ form.picture.label() }}
+                    {{ form.picture(class="form-control-file") }}
+                    {% if form.picture.errors %}
+                        {% for error in form.picture.errors %}
+                            <span class="text-danger">{{ error }}</span></br>
+                        {% endfor %}
                     {% endif %}
                 </div>
             </fieldset>

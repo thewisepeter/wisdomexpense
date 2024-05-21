@@ -83,7 +83,7 @@ class ExpenseForm(FlaskForm):
     ], validators=[DataRequired()])
     date_of_purchase = DateField('Date of Purchase', format='%Y-%m-%d', validators=[DataRequired()])
     description = TextAreaField('Description')
-    receipt_image = FileField('Receipt Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Images only!')])
+    picture = FileField('Receipt Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Images only!')])
     submit = SubmitField('Add Expense')
 
     # def validate_date_of_purchase(self, field):
