@@ -135,12 +135,13 @@ def save_receipt_picture(form_picture):
     picture_path = os.path.join(app.root_path, 'static/receipt_pics', picture_fn)
     
     # resizing the image
-    output_size = (125, 125)
+    output_size = (600, 600)
     i = Image.open(form_picture)
     i.thumbnail(output_size)
     i.save(picture_path)
 
-    return picture_fn
+    return 'receipt_pics/' + picture_fn
+
 @app.route("/expense/new", methods=['GET', 'POST'])
 @login_required
 def new_expense():
@@ -151,9 +152,9 @@ def new_expense():
         if form.validate_on_submit():
             if form.picture.data:
                 picture_file = save_receipt_picture(form.picture.data)
-                current_user.image_file = picture_file
+                # current_user.image_file = picture_file
             else:
-                picture_file = 'default_receipt.png'
+                picture_file = 'receipt_pics/default_receipt.png'
             expense=Expenses(
                 title=form.title.data,
                 amount=form.amount.data,
@@ -169,7 +170,11 @@ def new_expense():
             return redirect(url_for('home'))
         return render_template('create_expense.html',title='Add Expense', form=form, legend="New Expense")
 
-
+@app.route("/expenses")
+@login_required  # Ensures only logged-in users can access this route
+def view_expenses():
+    user_expenses = Expenses.query.filter_by(user_id=current_user.id).all()
+    return render_template('view_expenses.html', expenses=user_expenses)
 
 # @app.route("/expense/<int:expense_id>/edit", methods=['GET', 'POST'])
 # def edit_expense(expense_id):
