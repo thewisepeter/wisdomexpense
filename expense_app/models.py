@@ -34,7 +34,7 @@ class Expenses(db.Model):
                                  default=datetime.utcnow)
     description = db.Column(db.Text)
     receipt_image = db.Column(db.String(20), nullable=False,
-                           default='receipt_pics/default_receipt.png')
+                           default='default_receipt.png')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
@@ -82,7 +82,7 @@ class PlannerItem(db.Model):
 
 
 
-# >>> from expense_app import app, db
-# >>> from expense_app.models import User, Expenses, Income, SpendingLimit, PlannerItem
-# >>> app.app_context().push()
-# >>> user_2 = User.query.filter_by(username='lorito').first()
+# from expense_app import app, db
+# from expense_app.models import User, Expenses, Income, SpendingLimit, PlannerItem
+# app.app_context().push()
+# user_2 = User.query.filter_by(username='lorito').first()
