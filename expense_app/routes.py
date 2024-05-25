@@ -1,7 +1,7 @@
 import os
 import secrets
 from PIL import Image
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, abort
 from expense_app import app, db, bcrypt
 from expense_app.models import User, Expenses, Income, SpendingLimit, PlannerItem
 from expense_app.forms import RegistrationForm, UpdateAccountForm, LoginForm, ExpenseForm
@@ -176,31 +176,52 @@ def view_expenses():
     user_expenses = Expenses.query.filter_by(user_id=current_user.id).all()
     return render_template('view_expenses.html', expenses=user_expenses)
 
-# @app.route("/expense/<int:expense_id>/edit", methods=['GET', 'POST'])
-# def edit_expense(expense_id):
-#     expense = Expenses.query.get_or_404(expense_id)
-#     form = ExpenseForm()
+@app.route("/expenses/<int:expense_id>")
+@login_required  # Ensures only logged-in users can access this route
+def expenses(expense_id):
+    expense = Expenses.query.get_or_404(expense_id)
+    return render_template('expense.html', title=expense.title, expense=expense)
 
-#     if form.validate_on_submit():
-#         expense.title = form.title.data
-#         expense.category = form.category.data
-#         expense.amount = form.amount.data
-#         expense.date_of_purchase = datetime.strptime(form.date_of_purchase.data, '%Y-%m-%d')
-#         expense.description = form.description.data
 
-#         if form.receipt_image.data:
-#             receipt_image_file = save_receipt_image(form.receipt_image.data)
-#             expense.receipt_image = receipt_image_file
+@app.route("/expense/<int:expense_id>/edit", methods=['GET', 'POST'])
+@login_required
+def edit_expense(expense_id):
+    expense = Expenses.query.get_or_404(expense_id)
+    if expense.author != current_user:
+        abort(403)
 
-#         db.session.commit()
-#         flash('Your expense has been updated!', 'success')
-#         return redirect(url_for('home'))
+    form = ExpenseForm()
+    if form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_receipt_picture(form.picture.data)
+            expense.receipt_image = picture_file
 
-#     elif request.method == 'GET':
-#         form.title.data = expense.title
-#         form.category.data = expense.category
-#         form.amount.data = expense.amount
-#         form.date_of_purchase.data = expense.date_of_purchase.strftime('%Y-%m-%d')
-#         form.description.data = expense.description
+        expense.title = form.title.data
+        expense.amount = form.amount.data
+        expense.category = form.category.data
+        expense.date_of_purchase = form.date_of_purchase.data
+        expense.description = form.description.data
+        
+        db.session.commit()
+        flash('Your expense has been updated!', 'success')
+        return redirect(url_for('home'))
+    elif request.method == 'GET':
+        form.title.data = expense.title
+        form.amount.data = expense.amount
+        form.category.data = expense.category
+        form.date_of_purchase.data = expense.date_of_purchase
+        form.description.data = expense.description
 
-#     return render_template('edit_expense.html', title='Edit Expense', form=form)
+    return render_template('create_expense.html', title='Edit Expense', form=form, legend='Edit Expense')
+
+
+@app.route("/expense/<int:expense_id>/delete", methods=['POST'])
+@login_required
+def delete_expense(expense_id):
+    expense = Expenses.query.get_or_404(expense_id)
+    if expense.user_id != current_user.id:
+        abort(403)
+    db.session.delete(expense)
+    db.session.commit()
+    flash('Your expense has been deleted!', 'success')
+    return redirect(url_for('home'))

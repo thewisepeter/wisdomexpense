@@ -5,13 +5,14 @@
     <h2>Your Expenses</h2>
     <div class="list-group">
         {% for expense in expenses %}
-        <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+        <a href="{{ url_for('expenses', expense_id=expense.id) }}" class="list-group-item list-group-item-action flex-column align-items-start">
             <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1">{{ expense.title }}</h5>
                 <small>{{ expense.date_of_purchase.strftime('%Y-%m-%d') }}</small>
             </div>
             <p class="mb-1">{{ expense.description }}</p>
             <small>Amount: ${{ expense.amount }} | Category: {{ expense.category }}</small>
+            
             {% if expense.receipt_image %}
             <div class="mt-2">
                 <img src="{{ url_for('static', filename=expense.receipt_image) }}" alt="Receipt Image" class="img-thumbnail" style="max-width: 200px;">
@@ -24,5 +25,6 @@
         </div>
         {% endfor %}
     </div>
+    
 </div>
 {% endblock %}
