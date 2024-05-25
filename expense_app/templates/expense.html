@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">{{ expense.title }}</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <p>{{ expense.description }}</p>
+                    </div>
+                    <div class="article-metadata">
+                        <p>Amount: ${{ expense.amount }} | Category: {{ expense.category }}</p>
+                        {% if expense.author == current_user %}
+                            <div class="btn-group" role="group" style="margin-bottom: 10px;">
+                                <a class="btn btn-sm btn-secondary" href="{{ url_for('edit_expense', expense_id=expense.id) }}">Update</a>
+                                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    {% if expense.receipt_image %}
+                    <div class="mb-3">
+                        <img src="{{ url_for('static', filename=expense.receipt_image) }}" alt="Receipt Image" class="img-fluid">
+                    </div>
+                    {% endif %}
+                    <p class="text-muted" style="margin-top: 10px;">Date of Purchase: {{ expense.date_of_purchase.strftime('%Y-%m-%d') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+ <!-- Modal -->
+ <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Delete Expense?</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <form action="{{ url_for('delete_expense', expense_id=expense.id) }}" method="POST">
+            <input class="btn btn-danger" type="submit" value="Delete">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
