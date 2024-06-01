@@ -4,7 +4,7 @@ from PIL import Image
 from flask import render_template, flash, redirect, url_for, request, abort
 from expense_app import app, db, bcrypt
 from expense_app.models import User, Expenses, Income, SpendingLimit, PlannerItem
-from expense_app.forms import RegistrationForm, UpdateAccountForm, LoginForm, ExpenseForm
+from expense_app.forms import RegistrationForm, UpdateAccountForm, LoginForm, ExpenseForm, IncomeForm
 from flask_login import login_user, current_user, logout_user, login_required
 
 posts = [
@@ -174,7 +174,7 @@ def new_expense():
 @login_required  # Ensures only logged-in users can access this route
 def view_expenses():
     user_expenses = Expenses.query.filter_by(user_id=current_user.id).all()
-    return render_template('view_expenses.html', expenses=user_expenses)
+    return render_template('all_expenses.html', expenses=user_expenses)
 
 @app.route("/expenses/<int:expense_id>")
 @login_required  # Ensures only logged-in users can access this route
@@ -225,3 +225,89 @@ def delete_expense(expense_id):
     db.session.commit()
     flash('Your expense has been deleted!', 'success')
     return redirect(url_for('home'))
+
+
+@app.route("/income/new", methods=['GET', 'POST'])
+@login_required
+def new_income():
+    form = IncomeForm()
+    if form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_receipt_picture(form.picture.data)
+        else:
+            picture_file = 'receipt_pics/default_receipt.png'
+        
+        income = Income(
+            source=form.source.data,
+            amount=form.amount.data,
+            category = form.category.data,
+            date_received=form.date_received.data,
+            description=form.description.data,
+            receipt_image = picture_file,
+            user_id=current_user.id
+        )
+        
+        db.session.add(income)
+        db.session.commit()
+        flash('Your income has been added!', 'success')
+        return redirect(url_for('home'))
+    return render_template('create_income.html', title='New Income', form=form, legend='Update Income')
+
+
+@app.route("/income")
+@login_required  # Ensures only logged-in users can access this route
+def all_income():
+    incomes = Income.query.filter_by(user_id=current_user.id).all()
+    return render_template('all_income.html', title='All Income', incomes=incomes)
+
+@app.route("/income/<int:income_id>")
+@login_required  # Ensures only logged-in users can access this route
+def view_income(income_id):
+    income = Income.query.get_or_404(income_id)
+    if income.author != current_user:
+        abort(403)
+    return render_template('income.html', title=income.source, income=income)
+
+
+@app.route("/income/<int:income_id>/edit", methods=['GET', 'POST'])
+@login_required
+def edit_income(income_id):
+    income = Income.query.get_or_404(income_id)
+    if income.author != current_user:
+        abort(403)
+    
+    form = IncomeForm()
+    if form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_receipt_picture(form.picture.data)
+            income.receipt_image = picture_file
+        
+        income.source = form.source.data
+        income.amount = form.amount.data
+        income.category = form.category.data
+        income.date_received = form.date_received.data
+        income.description = form.description.data
+        
+        db.session.commit()
+        flash('Your income has been updated!', 'success')
+        return redirect(url_for('view_income', income_id=income.id))
+    elif request.method == 'GET':
+        form.source.data = income.source
+        form.amount.data = income.amount
+        form.category.data = income.category
+        form.date_received.data = income.date_received
+        form.description.data = income.description
+    
+    return render_template('create_income.html', title='Edit Income', form=form, legend="Edit Income")
+
+
+@app.route("/income/<int:income_id>/delete", methods=['POST'])
+@login_required
+def delete_income(income_id):
+    income = Income.query.get_or_404(income_id)
+    if income.author != current_user:
+        abort(403)
+    db.session.delete(income)
+    db.session.commit()
+    flash('Your income entry has been deleted!', 'success')
+    return redirect(url_for('all_income.html'))

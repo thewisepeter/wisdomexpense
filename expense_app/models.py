@@ -46,9 +46,12 @@ class Income(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     source = db.Column(db.String(100), nullable=False)
     amount = db.Column(db.Integer, nullable=False)
+    category = db.Column(db.String(50), nullable=False)
     date_received = db.Column(db.DateTime, nullable=False,
                               default=datetime.utcnow)
     description = db.Column(db.Text)
+    receipt_image = db.Column(db.String(20), nullable=False,
+                              default='default_receipt.png')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):

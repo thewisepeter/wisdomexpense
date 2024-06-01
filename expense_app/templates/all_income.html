@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Your Income</h2>
+    <div class="list-group">
+        {% for income in incomes %}
+        <a href="{{ url_for('view_income', income_id=income.id) }}" class="list-group-item list-group-item-action flex-column align-items-start">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ income.source }}</h5>
+                <small>{{ income.date_received.strftime('%Y-%m-%d') }}</small>
+            </div>
+            <p class="mb-1">{{ income.description }}</p>
+            <small>Amount: ${{ income.amount }} | Category: {{ income.category }}</small>
+            
+            {% if income.receipt_image %}
+            <div class="mt-2">
+                <img src="{{ url_for('static', filename=income.receipt_image) }}" alt="Receipt Image" class="img-thumbnail" style="max-width: 200px;">
+            </div>
+            {% endif %}
+        </a>
+        {% else %}
+        <div class="alert alert-info" role="alert">
+            No income found. Add some to see them here!
+        </div>
+        {% endfor %}
+    </div>
+    
+</div>
+{% endblock %}

@@ -86,8 +86,19 @@ class ExpenseForm(FlaskForm):
     picture = FileField('Receipt Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Images only!')])
     submit = SubmitField('Add Expense')
 
-    # def validate_date_of_purchase(self, field):
-    #     try:
-    #         datetime.strptime(field.data, '%Y-%m-%d')
-    #     except ValueError:
-    #         raise ValueError("Incorrect date format, please use YYYY-MM-DD")
+
+# This form captures Income
+class IncomeForm(FlaskForm):
+    source = StringField('Source', validators=[DataRequired(), Length(max=100)])
+    amount = IntegerField('Amount', validators=[DataRequired()])
+    category = SelectField('Category', choices=[
+        ('Salary', 'Salary'),
+        ('Investment', 'Investment'),
+        ('Gift', 'Gift'),
+        ('Other', 'Other')
+    ], validators=[DataRequired()])
+    date_received = DateField('Date Received', format='%Y-%m-%d', validators=[DataRequired()])
+    description = TextAreaField('Description')
+    picture = FileField('Receipt Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Images only!')])
+    submit = SubmitField('Add Income')
+ 
