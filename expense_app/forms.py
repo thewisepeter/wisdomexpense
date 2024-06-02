@@ -21,7 +21,7 @@ class RegistrationForm(FlaskForm):
 
     def validate_username(self, username):
         """
-            this method checks if the username has already been taken
+            this method checks if the username has already been taken 
         """
         user = User.query.filter_by(username=username.data).first()
         if user:
@@ -95,7 +95,7 @@ class IncomeForm(FlaskForm):
         ('Salary', 'Salary'),
         ('Investment', 'Investment'),
         ('Gift', 'Gift'),
-        ('Other', 'Other')
+        ('Others', 'Others')
     ], validators=[DataRequired()])
     date_received = DateField('Date Received', format='%Y-%m-%d', validators=[DataRequired()])
     description = TextAreaField('Description')
