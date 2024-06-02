@@ -19,7 +19,7 @@ class User(db.Model, UserMixin):
     income = db.relationship('Income', backref='author', lazy=True)
     spending_limits = db.relationship('SpendingLimit', backref='author',
                                       lazy=True)
-    planner_items = db.relationship('PlannerItem', backref='author', lazy=True)
+    planner_items = db.relationship('PlannerItem', backref='author', lazy=True) 
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image_file}')"

@@ -174,12 +174,14 @@ def new_expense():
 @login_required  # Ensures only logged-in users can access this route
 def view_expenses():
     user_expenses = Expenses.query.filter_by(user_id=current_user.id).all()
-    return render_template('all_expenses.html', expenses=user_expenses)
+    return render_template('all_expenses.html', title='All Expenses', expenses=user_expenses)
 
 @app.route("/expenses/<int:expense_id>")
 @login_required  # Ensures only logged-in users can access this route
 def expenses(expense_id):
     expense = Expenses.query.get_or_404(expense_id)
+    if expense.author != current_user:
+        abort(403)
     return render_template('expense.html', title=expense.title, expense=expense)
 
 
@@ -204,7 +206,7 @@ def edit_expense(expense_id):
         
         db.session.commit()
         flash('Your expense has been updated!', 'success')
-        return redirect(url_for('home'))
+        return redirect(url_for('expenses', expense_id=expense.id))
     elif request.method == 'GET':
         form.title.data = expense.title
         form.amount.data = expense.amount
@@ -310,4 +312,4 @@ def delete_income(income_id):
     db.session.delete(income)
     db.session.commit()
     flash('Your income entry has been deleted!', 'success')
-    return redirect(url_for('all_income.html'))
+    return redirect(url_for('all_income'))
