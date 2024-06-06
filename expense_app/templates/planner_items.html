@@ -1,22 +1,54 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="container mt-4">
-        <h2>Planner Items</h2>
-        <div class="list-group">
-            {% for item in items %}
-                <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">{{ item.title }}</h5>
-                        <small>{{ item.planned_date.strftime('%Y-%m-%d') }}</small>
+<div class="container mt-4">
+    <h2 class="mb-4">Planner Items</h2>
+    <div class="card">
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Title</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Planned Date</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.description }}</td>
+                        <td>{{ item.planned_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <a class="btn btn-sm btn-secondary" href="{{ url_for('edit_planner_item', planner_item_id=item.id) }}">Edit</a>
+                            <!-- Trigger the delete modal -->
+                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ item.id }}">Delete</button>
+                        </td>
+                    </tr>
+                    <!-- Modal -->
+                    <div class="modal fade" id="deleteModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ item.id }}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ item.id }}">Delete Planner Item?</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <form action="{{ url_for('delete_planner_item', planner_item_id=item.id) }}" method="POST">
+                                        <input class="btn btn-danger" type="submit" value="Delete">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <p class="mb-1">{{ item.description }}</p>
-                </a>
-            {% else %}
-                <div class="alert alert-info" role="alert">
-                    No planner items added.
-                </div>
-            {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 {% endblock %}
