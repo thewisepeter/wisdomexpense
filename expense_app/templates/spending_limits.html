@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>Spending Limits</h2>
+        <div class="list-group">
+            {% for limit in limits %}
+                <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ limit.daily_limit }}</h5>
+                        <small>From: {{ limit.start_date.strftime('%Y-%m-%d') }} To: {{ limit.end_date.strftime('%Y-%m-%d') }}</small>
+                    </div>
+                </a>
+            {% else %}
+                <div class="alert alert-info" role="alert">
+                    No spending limits set.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
