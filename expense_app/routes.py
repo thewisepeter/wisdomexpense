@@ -154,7 +154,10 @@ def new_expense():
             # Calculate today's spending
             today = datetime.utcnow().date()
             total_spent_today = sum(
-                expense.amount for expense in Expenses.query.filter_by(user_id=current_user.id, date_of_purchase=today)
+                expense.amount for expense in Expenses.query.filter_by(
+                    user_id=current_user.id,
+                    date_of_purchase=today
+                )
             )
 
             # Get the current spending limit
@@ -212,6 +215,27 @@ def edit_expense(expense_id):
 
     form = ExpenseForm()
     if form.validate_on_submit():
+        # Calculate today's spending excluding the current expense
+        today = datetime.utcnow().date()
+        total_spent_today_excluding_current = sum(
+            expense.amount for expense in Expenses.query.filter(
+                Expenses.user_id == current_user.id,
+                Expenses.date_of_purchase == today,
+                Expenses.id != expense_id
+            )
+        )
+
+        # Get the current spending limit
+        current_limit = SpendingLimit.query.filter(
+            SpendingLimit.user_id == current_user.id,
+            SpendingLimit.start_date <= today,
+            SpendingLimit.end_date >= today
+        ).first()
+
+        if current_limit and (total_spent_today_excluding_current + form.amount.data > current_limit.daily_limit):
+            flash('Warning: Updating this expense exceeds your daily limit!', 'warning')
+        
+
         if form.picture.data:
             picture_file = save_receipt_picture(form.picture.data)
             expense.receipt_image = picture_file
@@ -355,6 +379,53 @@ def new_spending_limit():
 def view_spending_limits():
     limits = SpendingLimit.query.filter_by(user_id=current_user.id).all()
     return render_template('spending_limits.html', title='Spending Limits', limits=limits)
+
+@app.route("/spending_limit/<int:limit_id>", methods=['GET'])
+@login_required
+def view_spending_limit(limit_id):
+    limit = SpendingLimit.query.get_or_404(limit_id)
+    if limit.user_id != current_user.id:
+        abort(403)
+
+    return render_template('view_spending_limit.html', title='Spending Limit', limit=limit)
+
+@app.route("/spending_limit/<int:limit_id>/edit", methods=['GET', 'POST'])
+@login_required
+def edit_spending_limit(limit_id):
+    limit = SpendingLimit.query.get_or_404(limit_id)
+    if limit.user_id != current_user.id:
+        abort(403)
+
+    form = SpendingLimitForm()
+    if form.validate_on_submit():
+        limit.daily_limit = form.daily_limit.data
+        limit.start_date = form.start_date.data
+        limit.end_date = form.end_date.data
+
+        db.session.commit()
+        flash('Spending limit updated successfully!', 'success')
+        return redirect(url_for('view_spending_limits'))
+    
+    elif request.method == 'GET':
+        form.daily_limit.data = limit.daily_limit
+        form.start_date.data = limit.start_date
+        form.end_date.data = limit.end_date
+
+    return render_template('create_spending_limit.html', title='Edit Spending Limit', form=form, limit=limit, legend='Edit Limit')
+
+
+@app.route("/spending_limit/<int:limit_id>/delete", methods=['POST'])
+@login_required
+def delete_spending_limit(limit_id):
+    limit = SpendingLimit.query.get_or_404(limit_id)
+    if limit.user_id != current_user.id:
+        abort(403)
+
+    db.session.delete(limit)
+    db.session.commit()
+    flash('Spending limit deleted successfully!', 'success')
+    return redirect(url_for('view_spending_limits'))
+
 
 @app.route("/planner_item/new", methods=['GET', 'POST'])
 @login_required

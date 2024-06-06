@@ -4,8 +4,8 @@ from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms import IntegerField, TextAreaField, SelectField, DateField, DateTimeField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_wtf.file import FileField, FileAllowed
-from datetime import datetime
-from expense_app.models import User
+from expense_app.models import User, SpendingLimit
+from sqlalchemy import and_, or_
 
 # This a form that handles User SignUp
 class RegistrationForm(FlaskForm):
@@ -107,6 +107,24 @@ class SpendingLimitForm(FlaskForm):
     start_date = DateField('Start Date', format='%Y-%m-%d', validators=[DataRequired()])
     end_date = DateField('End Date', format='%Y-%m-%d', validators=[DataRequired()])
     submit = SubmitField('Set Limit')
+
+    def validate_start_date(self, start_date):
+        if self.end_date.data < start_date.data:
+            raise ValidationError("End date must be after the start date.")
+
+        overlapping_limits = SpendingLimit.query.filter(
+            SpendingLimit.user_id == current_user.id,
+            or_(
+                and_(SpendingLimit.start_date <= start_date.data, SpendingLimit.end_date >= start_date.data),
+                and_(SpendingLimit.start_date <= self.end_date.data, SpendingLimit.end_date >= self.end_date.data),
+                and_(SpendingLimit.start_date >= start_date.data, SpendingLimit.end_date <= self.end_date.data),
+                and_(SpendingLimit.start_date <= start_date.data, SpendingLimit.end_date >= self.end_date.data),
+            )
+        ).all()
+
+        if overlapping_limits:
+            raise ValidationError("This period overlaps with an existing spending limit.")
+
 
 class PlannerItemForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
