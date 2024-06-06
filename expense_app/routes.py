@@ -1,5 +1,6 @@
 import os
 import secrets
+from datetime import datetime
 from PIL import Image
 from flask import render_template, flash, redirect, url_for, request, abort
 from expense_app import app, db, bcrypt
@@ -143,19 +144,35 @@ def save_receipt_picture(form_picture):
 
     return 'receipt_pics/' + picture_fn
 
+#Handles addition of expenses
 @app.route("/expense/new", methods=['GET', 'POST'])
 @login_required
 def new_expense():
-        '''
-            Handles addition of expenses
-        '''
         form = ExpenseForm()
         if form.validate_on_submit():
+
+            # Calculate today's spending
+            today = datetime.utcnow().date()
+            total_spent_today = sum(
+                expense.amount for expense in Expenses.query.filter_by(user_id=current_user.id, date_of_purchase=today)
+            )
+
+            # Get the current spending limit
+            current_limit = SpendingLimit.query.filter(
+                SpendingLimit.user_id == current_user.id,
+                SpendingLimit.start_date <= today,
+                SpendingLimit.end_date >= today
+            ).first()
+
+            if current_limit and (total_spent_today + form.amount.data > current_limit.daily_limit):
+                flash('Warning: This expense exceeds your daily limit!', 'warning')
+            
             if form.picture.data:
                 picture_file = save_receipt_picture(form.picture.data)
                 # current_user.image_file = picture_file
             else:
                 picture_file = 'receipt_pics/default_receipt.png'
+            
             expense=Expenses(
                 title=form.title.data,
                 amount=form.amount.data,
@@ -321,7 +338,12 @@ def delete_income(income_id):
 def new_spending_limit():
     form = SpendingLimitForm()
     if form.validate_on_submit():
-        spending_limit = SpendingLimit(daily_limit=form.daily_limit.data, start_date=form.start_date.data, end_date=form.end_date.data, user_id=current_user.id)
+        spending_limit = SpendingLimit(
+            daily_limit=form.daily_limit.data,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            user_id=current_user.id
+        )
         db.session.add(spending_limit)
         db.session.commit()
         flash('Your spending limit has been set!', 'success')
