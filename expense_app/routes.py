@@ -432,7 +432,12 @@ def delete_spending_limit(limit_id):
 def new_planner_item():
     form = PlannerItemForm()
     if form.validate_on_submit():
-        planner_item = PlannerItem(title=form.title.data, description=form.description.data, planned_date=form.planned_date.data, user_id=current_user.id)
+        planner_item = PlannerItem(
+            title=form.title.data,
+            description=form.description.data,
+            planned_date=form.planned_date.data,
+            user_id=current_user.id
+        )
         db.session.add(planner_item)
         db.session.commit()
         flash('Your planner item has been added!', 'success')
@@ -444,3 +449,38 @@ def new_planner_item():
 def view_planner_items():
     items = PlannerItem.query.filter_by(user_id=current_user.id).all()
     return render_template('planner_items.html', title='Planner Items', items=items)
+
+@app.route("/planner_item/<int:planner_item_id>/edit", methods=['GET', 'POST'])
+@login_required
+def edit_planner_item(planner_item_id):
+    planner_item = PlannerItem.query.get_or_404(planner_item_id)
+    if planner_item.user_id != current_user.id:
+        abort(403)
+
+    form = PlannerItemForm()
+    if form.validate_on_submit():
+        planner_item.title = form.title.data
+        planner_item.description = form.description.data
+        planner_item.planned_date = form.planned_date.data
+        db.session.commit()
+        flash('Your planner item has been updated!', 'success')
+        return redirect(url_for('view_planner_items'))
+    elif request.method == 'GET':
+        form.title.data = planner_item.title
+        form.description.data = planner_item.description
+        form.planned_date.data = planner_item.planned_date
+
+    return render_template('create_planner_item.html', title='Edit Planner Item', form=form, legend='Edit Planner Item')
+
+
+@app.route("/planner_item/<int:planner_item_id>/delete", methods=['POST'])
+@login_required
+def delete_planner_item(planner_item_id):
+    planner_item = PlannerItem.query.get_or_404(planner_item_id)
+    if planner_item.user_id != current_user.id:
+        abort(403)
+
+    db.session.delete(planner_item)
+    db.session.commit()
+    flash('Your planner item has been deleted!', 'success')
+    return redirect(url_for('view_planner_items'))
