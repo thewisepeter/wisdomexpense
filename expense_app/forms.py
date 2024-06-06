@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_login import current_user
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
-from wtforms import IntegerField, TextAreaField, SelectField, DateField
+from wtforms import IntegerField, TextAreaField, SelectField, DateField, DateTimeField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_wtf.file import FileField, FileAllowed
 from datetime import datetime
@@ -101,4 +101,15 @@ class IncomeForm(FlaskForm):
     description = TextAreaField('Description')
     picture = FileField('Receipt Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Images only!')])
     submit = SubmitField('Add Income')
- 
+
+class SpendingLimitForm(FlaskForm):
+    daily_limit = IntegerField('Daily Limit', validators=[DataRequired()])
+    start_date = DateField('Start Date', format='%Y-%m-%d', validators=[DataRequired()])
+    end_date = DateField('End Date', format='%Y-%m-%d', validators=[DataRequired()])
+    submit = SubmitField('Set Limit')
+
+class PlannerItemForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    description = TextAreaField('Description')
+    planned_date = DateField('Planned Date', format='%Y-%m-%d', validators=[DataRequired()])
+    submit = SubmitField('Add Item')

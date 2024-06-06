@@ -4,7 +4,8 @@ from PIL import Image
 from flask import render_template, flash, redirect, url_for, request, abort
 from expense_app import app, db, bcrypt
 from expense_app.models import User, Expenses, Income, SpendingLimit, PlannerItem
-from expense_app.forms import RegistrationForm, UpdateAccountForm, LoginForm, ExpenseForm, IncomeForm
+from expense_app.forms import RegistrationForm, UpdateAccountForm, LoginForm
+from expense_app.forms import  ExpenseForm, IncomeForm, SpendingLimitForm, PlannerItemForm
 from flask_login import login_user, current_user, logout_user, login_required
 
 posts = [
@@ -313,3 +314,40 @@ def delete_income(income_id):
     db.session.commit()
     flash('Your income entry has been deleted!', 'success')
     return redirect(url_for('all_income'))
+
+
+@app.route("/spending_limit/new", methods=['GET', 'POST'])
+@login_required
+def new_spending_limit():
+    form = SpendingLimitForm()
+    if form.validate_on_submit():
+        spending_limit = SpendingLimit(daily_limit=form.daily_limit.data, start_date=form.start_date.data, end_date=form.end_date.data, user_id=current_user.id)
+        db.session.add(spending_limit)
+        db.session.commit()
+        flash('Your spending limit has been set!', 'success')
+        return redirect(url_for('view_spending_limits'))
+    return render_template('create_spending_limit.html', title='New Spending Limit', form=form, legend='New Spending Limit')
+
+@app.route("/spending_limits")
+@login_required
+def view_spending_limits():
+    limits = SpendingLimit.query.filter_by(user_id=current_user.id).all()
+    return render_template('spending_limits.html', title='Spending Limits', limits=limits)
+
+@app.route("/planner_item/new", methods=['GET', 'POST'])
+@login_required
+def new_planner_item():
+    form = PlannerItemForm()
+    if form.validate_on_submit():
+        planner_item = PlannerItem(title=form.title.data, description=form.description.data, planned_date=form.planned_date.data, user_id=current_user.id)
+        db.session.add(planner_item)
+        db.session.commit()
+        flash('Your planner item has been added!', 'success')
+        return redirect(url_for('view_planner_items'))
+    return render_template('create_planner_item.html', title='New Planner Item', form=form, legend='New Planner Item')
+
+@app.route("/planner_items")
+@login_required
+def view_planner_items():
+    items = PlannerItem.query.filter_by(user_id=current_user.id).all()
+    return render_template('planner_items.html', title='Planner Items', items=items)
